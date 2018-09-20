@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use autodie;
 use File::Basename;
+use File::Spec::Functions;
 use Digest::SHA qw(sha1_hex);
 use experimental 'smartmatch';
 
@@ -31,6 +32,21 @@ sub checkGitDir {
     if (!-d $LE_GIT_DIR) {
         die basename($0).": error: no $LE_GIT_DIR directory containing legit repository exists\n";
     }
+}
+
+sub getRelativeFiles {
+    my @files = @_;
+    my @r_files = ();
+    foreach my $file (@files) {
+        my $r_file = catfile($file);
+        if ($r_file !~ /\.\./) {
+            push @r_files, $r_file;
+        } else {
+            # cannot be out of respository
+            die basename($0).": error: invalid filename '$file'\n";
+        }
+    }
+    return @r_files;
 }
 
 sub readIndex {
@@ -107,7 +123,7 @@ if (@ARGV) {
     elsif ("add" eq $command) {
         checkGitDir();
         die basename($0).": error: nothing added.\nMaybe you wanted to say 'git add .'?\n" if (@ARGV < 2);
-        my @files = @ARGV[1..$#ARGV];
+        my @files = getRelativeFiles(@ARGV[1..$#ARGV]);
         my @index = readIndex();
         my @not_changed = ();
         foreach my $record (@index) {

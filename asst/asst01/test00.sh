@@ -16,3 +16,26 @@ pwd
 cd ..
 pwd
 rm -rf subdir
+
+# test invalid filename
+./legit.pl add
+./legit.pl add .
+./
+
+# test invalid filename
+current=`pwd`
+cd ..
+touch a
+cd "$current"
+./legit.pl add ../a
+rm ../a
+
+# test add
+touch a b c
+./legit.pl add a
+./legit.pl ls-files -s
+echo new content > a
+./legit.pl add a
+./legit.pl ls-files -s
+./legit.pl add *
+./legit.pl ls-files -s
