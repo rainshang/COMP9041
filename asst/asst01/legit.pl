@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-use autodie;
 use File::Basename;
 use File::Spec::Functions;
 use Digest::SHA qw(sha1_hex);
@@ -20,14 +19,14 @@ $LE_GIT_OBJECT_TYPE_COMMIT = 2;
 
 sub writeFile {
     my ($data, $file) = @_;
-    open my $fh, '>', $file;
+    open my $fh, '>', $file or die basename($0).": error: can not open '$file'\n";
     print $fh $data;
     close $fh;
 }
 
 sub readFile {
     my ($file) = @_;
-    open my $fh, '<', $file;
+    open my $fh, '<', $file or die basename($0).": error: can not open '$file'\n";
     read $fh, my $data, -s $fh;
     close $fh;
     return $data;
@@ -343,7 +342,7 @@ if (@ARGV) {
                 if ($sha1) {
                     print((readObject($sha1))[1]);
                 } else {
-                    die basename($0).": error: '$filename' not found in commit $commit\n";
+                    die basename($0).": error: '$filename' not found in index\n";
                 }
             }
         } else {
