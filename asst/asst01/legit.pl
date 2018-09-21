@@ -166,6 +166,34 @@ sub readCommit {
     return split("\n", $commit);
 }
 
+sub addFiles {
+    my @files = @_;
+    my @index = readIndex();
+    my @not_changed = ();
+    foreach my $record (@index) {
+        my ($sha_1, $conflict, $filename) = split(' ', $record);
+        my $hit;
+        foreach my $file (@files) {
+            $hit = 1 if ($file eq $filename);
+        }
+        if (!$hit) {
+            push(@not_changed, $record);
+        }
+    }
+    @index = ();
+    push(@index, @not_changed);
+    foreach my $file (@files) {
+        if ($file =~ /^[a-zA-Z0-9][a-zA-Z0-9.-_]*/) {
+            $sha1 = hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB);
+            my $record = "$sha1 0 $file";
+            push(@index, $record);
+        } else {
+            die basename($0).": error: invalid filename '$file'\n";
+        }
+    }
+    writeIndex(@index);
+}
+
 if (@ARGV) {
     $command = $ARGV[0];
     # legit init
@@ -200,43 +228,24 @@ if (@ARGV) {
     elsif ('add' eq $command) {
         checkGitDir();
         die basename($0).": error: nothing added.\nMaybe you wanted to say 'git add .'?\n" if (@ARGV < 2);
-        my @files = getRelativeFiles(@ARGV[1..$#ARGV]);
-        my @index = readIndex();
-        my @not_changed = ();
-        foreach my $record (@index) {
-            my ($sha_1, $conflict, $filename) = split(' ', $record);
-            my $hit;
-            foreach my $file (@files) {
-                $hit = 1 if ($file eq $filename);
-            }
-            if (!$hit) {
-                push(@not_changed, $record);
-            }
-        }
-        @index = ();
-        push(@index, @not_changed);
-        foreach my $file (@files) {
-            if ($file =~ /^[a-zA-Z0-9][a-zA-Z0-9.-_]*/) {
-                $sha1 = hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB);
-                my $record = "$sha1 0 $file";
-                push(@index, $record);
-            } else {
-                die basename($0).": error: invalid filename '$file'\n";
-            }
-        }
-        writeIndex(@index);
+        addFiles(getRelativeFiles(@ARGV[1..$#ARGV]))
     }
     # legit.pl commit [-a] -m <message>
     elsif ('commit' eq $command) {
         checkGitDir();
         my $msg;
-        my $a_mode;
         if (@ARGV == 3 and '-m' eq $ARGV[1]) {
             $msg = $ARGV[2];
         }
         elsif (@ARGV == 4 and '-a' eq $ARGV[1] and '-m' eq $ARGV[2]) {
-            $a_mode = 1;
-            $msg = $ARGV[3]; 
+            $msg = $ARGV[3];
+            my @index = readIndex();
+            my @files = ();
+            foreach my $record (@index) {
+                my $filename = (split ' ', $record)[2];
+                push @files, $filename;
+            }
+            addFiles(@files);
         }
         else {
             die "usage: legit.pl commit [-a] -m commit-message\n";
@@ -245,7 +254,7 @@ if (@ARGV) {
         if ($tree) {
             # tree msg parent version_code
             my $parent = getHead();
-            my $data = "$tree\n$msg\n";
+            my $data = "$tree\n$msg";
             my $version;
             if ($parent) {
                 my @parent = readCommit($parent);
@@ -261,6 +270,20 @@ if (@ARGV) {
             print("Committed as commit $version\n");
         } else {
             die "nothing to commit\n";
+        }
+    }
+    # legit.pl log
+    elsif ("log" eq $command) {
+        my $parent = getHead();
+        while ($parent) {
+            my @parent = readCommit($parent);
+            if (@parent == 4) {
+                print("$parent[3] $parent[1]\n");
+                $parent = $parent[2];
+            } else {
+                print("$parent[2] $parent[1]\n");
+                $parent = undef;
+            }
         }
     }
     elsif ("test" eq $command) {
