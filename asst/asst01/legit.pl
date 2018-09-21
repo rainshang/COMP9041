@@ -39,16 +39,20 @@ sub checkGitDir {
     }
 }
 
-sub getRelativeFiles {
+sub normalizeFiles {
     my @files = @_;
     my @r_files = ();
     foreach my $file (@files) {
-        my $r_file = catfile($file);
-        if ($r_file !~ /\.\./) {
-            push @r_files, $r_file;
-        } else {
-            # cannot be out of respository
+        if ($file !~ /^\/?([\w.-]+\/)*[a-zA-Z0-9][\w.-]*$/) {
             die basename($0).": error: invalid filename '$file'\n";
+        } else {
+            my $r_file = catfile($file);
+            if ($r_file !~ /\.\./) {
+                push @r_files, $r_file;
+            } else {
+                # cannot be out of respository
+                die basename($0).": error: invalid filename '$file'\n";
+            }
         }
     }
     return @r_files;
@@ -129,6 +133,12 @@ sub writeTree {
     }
 }
 
+sub readTree {
+    my ($sha1) = @_;
+    my $data = (readObject($sha1))[1];
+    return split("\n", $data);
+}
+
 sub whichBranch {
     my $head = readFile($LE_GIT_HEAD);
     chomp $head;
@@ -166,12 +176,13 @@ sub readCommit {
     return split("\n", $commit);
 }
 
+# sha1 conflict file
 sub addFiles {
     my @files = @_;
     my @index = readIndex();
     my @not_changed = ();
     foreach my $record (@index) {
-        my ($sha_1, $conflict, $filename) = split(' ', $record);
+        my ($sha1, $conflict, $filename) = split(' ', $record);
         my $hit;
         foreach my $file (@files) {
             $hit = 1 if ($file eq $filename);
@@ -183,15 +194,22 @@ sub addFiles {
     @index = ();
     push(@index, @not_changed);
     foreach my $file (@files) {
-        if ($file =~ /^[a-zA-Z0-9][a-zA-Z0-9.-_]*/) {
-            $sha1 = hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB);
-            my $record = "$sha1 0 $file";
-            push(@index, $record);
-        } else {
-            die basename($0).": error: invalid filename '$file'\n";
-        }
+        $sha1 = hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB);
+        my $record = "$sha1 0 $file";
+        push(@index, $record);
     }
     writeIndex(@index);
+}
+
+sub findFileHashInTree {
+    my ($filename, @tree) = @_;
+    foreach $record (@tree) {
+        my ($sha1, $conflict, $file) = split / /, $record;
+        if ($file eq $filename) {
+            return $sha1;
+        }
+    }
+    return;
 }
 
 if (@ARGV) {
@@ -228,7 +246,7 @@ if (@ARGV) {
     elsif ('add' eq $command) {
         checkGitDir();
         die basename($0).": error: nothing added.\nMaybe you wanted to say 'git add .'?\n" if (@ARGV < 2);
-        addFiles(getRelativeFiles(@ARGV[1..$#ARGV]))
+        addFiles(normalizeFiles(@ARGV[1..$#ARGV]))
     }
     # legit.pl commit [-a] -m <message>
     elsif ('commit' eq $command) {
@@ -286,6 +304,53 @@ if (@ARGV) {
             }
         }
     }
+    # legit.pl show <commit>:<filename>
+    elsif ("show" eq $command) {
+        if (@ARGV == 2 and my ($commit, $filename) = $ARGV[1] =~ /^(\d*):(.+)$/) {
+            ($filename) = normalizeFiles(($filename));
+            if ($commit =~ /\d+/) {
+                my $parent = getHead();
+                while ($parent) {
+                    my @parent = readCommit($parent);
+                    my $version_code;
+                    if (@parent == 4) {
+                        $version_code = $parent[3];
+                    } else {
+                        $version_code = $parent[2];
+                    }
+                    if ($version_code == $commit) {
+                        my $tree = $parent[0];
+                        my @tree = readTree($tree);
+                        foreach $record (@tree) {
+                            my ($sha1, $conflict, $file) = split / /, $record;
+                            if ($file eq $filename) {
+                                print((readObject($sha1))[1]);
+                                exit 0;
+                            }
+                        }
+                        die basename($0).": error: '$filename' not found in commit $commit\n";
+                    } else {
+                        if (@parent == 4) {
+                            $parent = $parent[2];
+                        } else {
+                            $parent = undef;
+                        }
+                    }
+                }
+                die basename($0).": error: unknown commit '$commit'\n";
+            } else {
+                my $sha1 = findFileHashInTree($filename, readIndex());
+                if ($sha1) {
+                    print((readObject($sha1))[1]);
+                } else {
+                    die basename($0).": error: '$filename' not found in commit $commit\n";
+                }
+            }
+        } else {
+            die "usage: legit.pl show <commit>:<filename>\n";
+        }
+    }
     elsif ("test" eq $command) {
+        normalizeFiles(@ARGV[1..$#ARGV])
     }
 }

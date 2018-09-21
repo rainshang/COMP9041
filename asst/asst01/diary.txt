@@ -14,3 +14,4 @@ Date        Start   Stop    Activity                        Comments
 21/09/18    02:30   09:00   coding                          implement 'commit' functionality
 21/09/18    09:00   11:30   debuging and testing            implement 'commit -m' functionality and test case
 21/09/18    13:00   13:38   coding, debuging and testing    implement 'commit -a -m' functionality; fix commit bugs; implement 'log'; test case
+21/09/18    14:00   16:26   coding, debuging and testing    implement 'show' functionality and test case
