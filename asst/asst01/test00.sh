@@ -12,11 +12,8 @@ print_description() {
 }
 
 execute_cmd() {
-    echo "${green}$1${reset}"
-    if [ ! $2 ]
-    then
-    $1
-    fi
+    echo ${green}\$ $1${reset}
+    eval $1
 }
 
 
@@ -60,12 +57,10 @@ execute_cmd './legit.pl add ../a'
 execute_cmd 'rm ../a'
 
 print_description '3.test multi add'
-execute_cmd 'echo line 1 > a' 1
-echo line 1 > a
+execute_cmd 'echo line 1 > a'
 execute_cmd './legit.pl add a'
 execute_cmd './legit.pl ls-files -s'
-execute_cmd 'echo line 2 >> a' 1
-echo line 2 >> a
+execute_cmd 'echo line 2 >> a'
 execute_cmd './legit.pl add a'
 execute_cmd './legit.pl ls-files -s'
 execute_cmd './legit.pl add a'
@@ -76,5 +71,11 @@ execute_cmd 'mkdir subdir'
 execute_cmd 'touch subdir/b'
 execute_cmd './legit.pl add subdir/b'
 execute_cmd './legit.pl ls-files'
-execute_cmd 'rm -rf .legit'
-execute_cmd 'rm -rf a subdir'
+
+print_description '5.test add and delete add'
+execute_cmd './legit.pl ls-files'
+execute_cmd 'rm a'
+execute_cmd './legit.pl add a'
+execute_cmd './legit.pl ls-files'
+
+execute_cmd 'rm -rf a subdir .legit'

@@ -15,3 +15,8 @@ Date        Start   Stop    Activity                        Comments
 21/09/18    09:00   11:30   debuging and testing            implement 'commit -m' functionality and test case
 21/09/18    13:00   13:38   coding, debuging and testing    implement 'commit -a -m' functionality; fix commit bugs; implement 'log'; test case
 21/09/18    14:00   16:26   coding, debuging and testing    implement 'show' functionality and test case
+22/09/18    00:00   01:30   coding                          implement 'rm' functionality
+22/09/18    11:00   16:00   coding                          implement 'rm' functionality
+22/09/18    20:15   24:00   coding                          implement 'rm' functionality
+23/09/18    00:00   02:00   debuging and testing            tuning 'rm' functionality. I know it is just comparing sha1 of working, index and head. But the rules is not clear at all. I've wasted almost a whole night to adjust the if-else by guessing the autotest result. It's really annoying. No help on understanding git nor improving programming skills. Just killing life.
+23/09/18    02:00   02:40   debuging and testing            double check subset0 and subset1(except 'status') and debug

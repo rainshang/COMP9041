@@ -116,20 +116,8 @@ sub writeIndex {
 }
 
 sub writeTree {
-    my @index = readIndex();
-    if (@index) {
-        my $data = join("\n", @index);
-        # not write yet
-        my $tree = hashObject($data, $LE_GIT_OBJECT_TYPE_TREE, 1);
-        if (objectExists($tree)) {
-            # this tree has already been written
-            return;
-        } else {
-            return hashObject($data, $LE_GIT_OBJECT_TYPE_TREE);
-        }
-    } else {
-        return;
-    }
+    my $data = join("\n", readIndex());
+    return hashObject($data, $LE_GIT_OBJECT_TYPE_TREE);
 }
 
 sub readTree {
@@ -193,11 +181,39 @@ sub addFiles {
     @index = ();
     push(@index, @not_changed);
     foreach my $file (@files) {
-        $sha1 = hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB);
-        my $record = "$sha1 0 $file";
-        push(@index, $record);
+        if (isNewFile($file) or -e $file) {
+            my $sha1 = hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB);
+            my $record = "$sha1 0 $file";
+            push(@index, $record);
+        }
     }
     writeIndex(@index);
+}
+
+# backtrack to check file has been commited in history
+sub isNewFile {
+    my ($file) = @_;
+    my $is_new = 1;
+    my $head = getHead();
+    return $is_new if (!$head);
+
+    my $parent = $head;
+    while ($parent) {
+        my @parent = readCommit($parent);
+        my @his_commit = split("\n", (readObject($parent[0]))[1]);
+        my $sha1_his_commit = findFileHashInTree($file, @his_commit);
+        if ($sha1_his_commit) {
+            $is_new = 0;
+            last;
+        } else {
+            if (@parent == 4) {
+                $parent = $parent[2];
+            } else {
+                $parent = undef;
+            }
+        }
+    }
+    return $is_new;
 }
 
 sub findFileHashInTree {
@@ -209,6 +225,22 @@ sub findFileHashInTree {
         }
     }
     return;
+}
+
+sub showMan {
+    print 
+"Usage: legit.pl <command> [<args>]\n
+These are the legit commands:
+    init       Create an empty legit repository
+    add        Add file contents to the index
+    commit     Record changes to the repository
+    log        Show commit log
+    show       Show file at particular state
+    rm         Remove files from the current directory and from the index
+    status     Show the status of files in the current directory, index, and repository
+    branch     list, create or delete a branch
+    checkout   Switch branches or restore current directory files
+    merge      Join two development histories together\n\n"
 }
 
 if (@ARGV) {
@@ -267,30 +299,29 @@ if (@ARGV) {
         else {
             die "usage: legit.pl commit [-a] -m commit-message\n";
         }
+
         my $tree = writeTree();
-        if ($tree) {
-            # tree msg parent version_code
-            my $parent = getHead();
-            my $data = "$tree\n$msg";
-            my $version;
-            if ($parent) {
-                my @parent = readCommit($parent);
-                $version = 1;
-                $version += $parent[3] if (@parent == 4);
-                $data = "$data\n$parent\n$version";
-            } else {
-                $version = 0;
-                $data = "$data\n$version";
-            }
-            my $commit = hashObject($data, $LE_GIT_OBJECT_TYPE_COMMIT);
-            writeHead($commit);
-            print("Committed as commit $version\n");
+        my $parent = getHead();
+        # tree msg parent version_code
+        my $data = "$tree\n$msg";
+        my $version;
+        if ($parent) {
+            my @parent = readCommit($parent);
+            die "nothing to commit\n" if ($tree eq $parent[0]);
+            $version = 1;
+            $version += $parent[3] if (@parent == 4);
+            $data = "$data\n$parent\n$version";
         } else {
-            die "nothing to commit\n";
+            $version = 0;
+            $data = "$data\n$version";
         }
+        my $commit = hashObject($data, $LE_GIT_OBJECT_TYPE_COMMIT);
+        writeHead($commit);
+        print("Committed as commit $version\n");
     }
     # legit.pl log
-    elsif ("log" eq $command) {
+    elsif ('log' eq $command) {
+        checkGitDir();
         my $parent = getHead();
         while ($parent) {
             my @parent = readCommit($parent);
@@ -304,7 +335,8 @@ if (@ARGV) {
         }
     }
     # legit.pl show <commit>:<filename>
-    elsif ("show" eq $command) {
+    elsif ('show' eq $command) {
+        checkGitDir();
         if (@ARGV == 2 and my ($commit, $filename) = $ARGV[1] =~ /^(\d*):(.+)$/) {
             ($filename) = normalizeFiles(($filename));
             if ($commit =~ /\d+/) {
@@ -349,7 +381,114 @@ if (@ARGV) {
             die "usage: legit.pl show <commit>:<filename>\n";
         }
     }
-    elsif ("test" eq $command) {
-        normalizeFiles(@ARGV[1..$#ARGV])
+    # legit.pl rm [--force] [--cached] <filenames...>
+    elsif ('rm' eq $command) {
+        checkGitDir();
+        if (@ARGV > 1) {
+            my $force;
+            my $cached;
+            my $file_starts = 1;
+            if ('--force' eq $ARGV[1] or '--cached' eq $ARGV[1]) {
+                if ('--force' eq $ARGV[1]) {
+                    $force = 1;
+                    if ($ARGV[2] and '--cached' eq $ARGV[2]) {
+                        $cached = 1;
+                        $file_starts = 3;
+                    } else {
+                        $file_starts = 2;
+                    }
+                } else {
+                    $cached = 1;
+                    if ($ARGV[2] and '--force' eq $ARGV[2]) {
+                        $force = 1;
+                        $file_starts = 3;
+                    } else {
+                        $file_starts = 2;
+                    }
+                }
+            }
+            if ($file_starts < @ARGV) {
+                my $a = @ARGV;
+                my $head = getHead();
+                if ($head) {
+                    my @files = normalizeFiles(@ARGV[$file_starts..$#ARGV]);
+                    my @file_i_index = ();# the position of file in index
+                    my @index = readIndex();
+                    if (@index) {
+                        # check all files in index first and save their positions
+                        my @index_files = ();
+                        foreach my $record (@index) {
+                            my $filename = (split(' ', $record))[2];
+                            push @index_files, $filename;
+                        }
+                        foreach my $file (@files) {
+                            my $hit;
+                            for (my $i = 0; $i < @index_files; $i++) {
+                                if ($index_files[$i] eq $file) {
+                                    $hit = 1;
+                                    push @file_i_index, $i;
+                                    last;
+                                }
+                            }
+                            die basename($0).": error: '$file' is not in the legit repository\n" if (!$hit);
+                        }
+
+                        if (!$force) {
+                            my @last_commit = split("\n", (readObject((readCommit($head))[0]))[1]);
+                            for (my $i = 0; $i < @files; $i++) {
+                                my $file = $files[$i];
+                                my $sha1 = hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB, 1);
+                                my $sha1_index = (split(' ', $index[$file_i_index[$i]]))[0];
+                                my $sha1_commit = findFileHashInTree($file, @last_commit);
+                                if ($sha1_commit) {
+                                    if ($sha1_index ne $sha1 and $sha1_index ne $sha1_commit) {
+                                        die basename($0).": error: '$file' in index is different to both working file and repository\n";
+                                    }
+                                    if ($sha1_index ne $sha1_commit) {
+                                        die basename($0).": error: '$file' has changes staged in the index\n" if (!$cached);
+                                    }
+                                    if ($sha1_commit ne $sha1) {
+                                        die basename($0).": error: '$file' in repository is different to working file\n" if !$cached;
+                                    }
+                                } else {
+                                    if ($sha1_index ne $sha1) {
+                                        die basename($0).": error: '$file' in index is different to both working file and repository\n";
+                                    }
+
+                                    # backtrack to check file has been commited in history
+                                    my $is_new = isNewFile($file);
+                                    die basename($0).": error: '$file' has changes staged in the index\n" if (!$is_new or !$cached);
+                                }
+                            }
+                        }
+
+                        for (my $i = 0; $i < @files; $i++) {
+                            undef $index[$file_i_index[$i]];
+                            unlink $files[$i] if !$cached;
+                        }
+                        @index = grep { defined($_) } @index;
+                        writeIndex(@index);
+                    } else {
+                        die basename($0).": error: '$files[0]' is not in the legit repository\n";
+                    }
+                } else {
+                    die basename($0).": your repository does not have any commits yet\n";
+                }
+            } else {
+                    # no filenames
+                    die "usage: legit.pl rm [--force] [--cached] <filenames...>\n";
+            }
+        } else {
+            # no filenames
+            die "usage: legit.pl rm [--force] [--cached] <filenames...>\n";
+        }
     }
+    elsif ('test' eq $command) {
+    }
+    else {
+        print basename($0).": error: unknown command $command\n";
+        showMan();
+    }
+} else {
+    showMan();
 }
