@@ -243,6 +243,25 @@ These are the legit commands:
     merge      Join two development histories together\n\n"
 }
 
+sub lsDirFiles {
+    my ($dir) = @_;
+    opendir my($dh), $dir;
+    my @files = ();
+    while (readdir $dh) {
+        if ('.' ne $_ and '..' ne $_ and $LE_GIT_DIR ne $_) {
+            my $path = $_;
+            $path = "$dir/$path" if ('.' ne $dir);
+            if (-d $path) {
+                push @files, lsDirFiles($path);
+            } elsif ($_ =~ /^[a-zA-Z0-9][\w.-]*$/) {
+                push @files, $path;
+            }
+        }
+    }
+    closedir $dh;
+    return @files;
+}
+
 if (@ARGV) {
     $command = $ARGV[0];
     # legit init
@@ -437,27 +456,29 @@ if (@ARGV) {
                             my @last_commit = split("\n", (readObject((readCommit($head))[0]))[1]);
                             for (my $i = 0; $i < @files; $i++) {
                                 my $file = $files[$i];
-                                my $sha1 = hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB, 1);
+                                my $sha1 = -e $file ? hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB, 1) : undef;
                                 my $sha1_index = (split(' ', $index[$file_i_index[$i]]))[0];
                                 my $sha1_commit = findFileHashInTree($file, @last_commit);
-                                if ($sha1_commit) {
-                                    if ($sha1_index ne $sha1 and $sha1_index ne $sha1_commit) {
-                                        die basename($0).": error: '$file' in index is different to both working file and repository\n";
-                                    }
-                                    if ($sha1_index ne $sha1_commit) {
-                                        die basename($0).": error: '$file' has changes staged in the index\n" if (!$cached);
-                                    }
-                                    if ($sha1_commit ne $sha1) {
-                                        die basename($0).": error: '$file' in repository is different to working file\n" if !$cached;
-                                    }
-                                } else {
-                                    if ($sha1_index ne $sha1) {
-                                        die basename($0).": error: '$file' in index is different to both working file and repository\n";
-                                    }
+                                if ($sha1) {
+                                    if ($sha1_commit) {
+                                        if ($sha1_index ne $sha1 and $sha1_index ne $sha1_commit) {
+                                            die basename($0).": error: '$file' in index is different to both working file and repository\n";
+                                        }
+                                        if ($sha1_index ne $sha1_commit) {
+                                            die basename($0).": error: '$file' has changes staged in the index\n" if (!$cached);
+                                        }
+                                        if ($sha1_commit ne $sha1) {
+                                            die basename($0).": error: '$file' in repository is different to working file\n" if !$cached;
+                                        }
+                                    } else {
+                                        if ($sha1_index ne $sha1) {
+                                            die basename($0).": error: '$file' in index is different to both working file and repository\n";
+                                        }
 
-                                    # backtrack to check file has been commited in history
-                                    my $is_new = isNewFile($file);
-                                    die basename($0).": error: '$file' has changes staged in the index\n" if (!$is_new or !$cached);
+                                        # backtrack to check file has been commited in history
+                                        my $is_new = isNewFile($file);
+                                        die basename($0).": error: '$file' has changes staged in the index\n" if (!$is_new or !$cached);
+                                    }
                                 }
                             }
                         }
@@ -481,6 +502,68 @@ if (@ARGV) {
         } else {
             # no filenames
             die "usage: legit.pl rm [--force] [--cached] <filenames...>\n";
+        }
+    }
+    # legit.pl status
+    elsif ('status' eq $command) {
+        checkGitDir();
+        my $head = getHead();
+        if ($head) {
+            my @last_commit = split("\n", (readObject((readCommit($head))[0]))[1]);
+            my @index = readIndex();
+            my @files = lsDirFiles('.');
+
+            # add all files in the current directory, index, and repository; sort
+            my %all_files = ();
+            foreach my $file (@files) {
+                $all_files{$file} = 1;
+            }
+            foreach my $i_record (@index) {
+                my ($sha1, $conflict, $file) = split / /, $i_record;
+                $all_files{$file} = 1;
+            }
+            foreach my $h_record (@last_commit) {
+                my ($sha1, $conflict, $file) = split / /, $h_record;
+                $all_files{$file} = 1;
+            }
+            my @all_files = (sort {$a cmp $b} keys %all_files);
+            foreach my $file (@all_files) {
+                my $sha1 = -e $file ? hashObject(readFile($file), $LE_GIT_OBJECT_TYPE_BLOB, 1) : undef;
+                my $sha1_index = @index ? findFileHashInTree($file, @index): undef;
+                my $sha1_commit = findFileHashInTree($file, @last_commit);
+                if ($sha1 and $sha1_index and $sha1_commit) {
+                    if ($sha1_index eq $sha1
+                        and $sha1_index eq $sha1_commit) {
+                        print "$file - same as repo\n";
+                    } elsif ($sha1_index eq $sha1) {
+                        print "$file - file changed, changes staged for commit\n";
+                    } elsif ($sha1_index eq $sha1_commit) {
+                        print "$file - file changed, changes not staged for commit\n";
+                    } else {
+                        print "$file - file changed, different changes staged for commit\n";
+                    }
+                } elsif ($sha1 and $sha1_index) {
+                    print "$file - added to index\n";
+                } elsif ($sha1 and $sha1_commit) {
+                     print "$file - untracked\n";
+                } elsif ($sha1_index and $sha1_commit) {
+                    if ($sha1_index eq $sha1_commit) {
+                        print "$file - file deleted\n";
+                    } else {
+                        print "$file - added to index\n";
+                    }
+                } elsif ($sha1) {
+                     print "$file - untracked\n";
+                } elsif ($sha1_index) {
+                    print "$file - added to index\n";
+                } elsif ($sha1_commit) {
+                    print "$file - deleted\n";
+                } else {
+                    # theoretically, we'll never be here
+                }
+            }
+        } else {
+            die basename($0).": your repository does not have any commits yet\n";
         }
     }
     elsif ('test' eq $command) {

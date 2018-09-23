@@ -20,3 +20,5 @@ Date        Start   Stop    Activity                        Comments
 22/09/18    20:15   24:00   coding                          implement 'rm' functionality
 23/09/18    00:00   02:00   debuging and testing            tuning 'rm' functionality. I know it is just comparing sha1 of working, index and head. But the rules is not clear at all. I've wasted almost a whole night to adjust the if-else by guessing the autotest result. It's really annoying. No help on understanding git nor improving programming skills. Just killing life.
 23/09/18    02:00   02:40   debuging and testing            double check subset0 and subset1(except 'status') and debug
+23/09/18    12:19   13:11   coding                          implement ls files recursively
+23/09/18    20:00   23:54   coding, debuging and testing    implement 'status' functionality; fix rm bugs; test case
