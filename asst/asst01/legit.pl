@@ -601,11 +601,12 @@ if (@ARGV) {
                         foreach my $branch (@branches) {
                             if ($branch_name eq $branch) {
                                 unlink "$LE_GIT_REFS_HEADS_DIR/$branch";
+                                print "Deleted branch '$branch_name'\n";
                                 exit 0;
                             }
                         }
                     } else {
-                        die basename($0).": error: you cannot delete current working branch\n";
+                        die basename($0).": error: can not delete branch '$branch_name'\n";
                     }
                     die basename($0).": error: branch '$branch_name' does not exist\n";
                 } else {
