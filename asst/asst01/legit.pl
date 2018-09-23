@@ -262,6 +262,11 @@ sub lsDirFiles {
     return @files;
 }
 
+sub getAllBranches {
+    my @branch_ref = lsDirFiles($LE_GIT_REFS_HEADS_DIR);
+    return sort map {substr($_, length($LE_GIT_REFS_HEADS_DIR) + 1)} @branch_ref;
+}
+
 if (@ARGV) {
     $command = $ARGV[0];
     # legit init
@@ -493,7 +498,7 @@ if (@ARGV) {
                         die basename($0).": error: '$files[0]' is not in the legit repository\n";
                     }
                 } else {
-                    die basename($0).": your repository does not have any commits yet\n";
+                   die basename($0).": error: your repository does not have any commits yet\n";
                 }
             } else {
                     # no filenames
@@ -563,8 +568,60 @@ if (@ARGV) {
                 }
             }
         } else {
-            die basename($0).": your repository does not have any commits yet\n";
+            die basename($0).": error: your repository does not have any commits yet\n";
         }
+    }
+    # legit.pl branch [-d] [<branch-name>]
+    elsif ('branch' eq $command) {
+        checkGitDir();
+        my $head = getHead();
+        if ($head) {
+            if (@ARGV == 1) {
+                my @branches = getAllBranches();
+                foreach my $branch (@branches) {
+                    print "$branch\n";
+                }
+            }
+            # legit.pl: error: branch 'b1' already exists
+            elsif (@ARGV == 2) {
+                die basename($0).": error: branch name required\n" if ('-d' eq $ARGV[1]);
+                my $branch_name = $ARGV[1];
+                my @branches = getAllBranches();
+                foreach my $branch (@branches) {
+                    die basename($0).": error: branch '$branch' already exists\n" if ($branch_name eq $branch);
+                }
+                my $branch = whichBranch();
+                writeFile($head, "$LE_GIT_REFS_HEADS_DIR/$branch_name");
+            }
+            elsif (@ARGV == 3) {
+                if ('-d' eq $ARGV[1] and my $branch_name = $ARGV[2]) {
+                    my $current_branch = whichBranch();
+                    if ($current_branch ne $branch_name) {
+                        my @branches = getAllBranches();
+                        foreach my $branch (@branches) {
+                            if ($branch_name eq $branch) {
+                                unlink "$LE_GIT_REFS_HEADS_DIR/$branch";
+                                exit 0;
+                            }
+                        }
+                    } else {
+                        die basename($0).": error: you cannot delete current working branch\n";
+                    }
+                    die basename($0).": error: branch '$branch_name' does not exist\n";
+                } else {
+                    die "usage: legit.pl branch [-d] <branch>\n";
+                }
+            }
+            else {
+                die "usage: legit.pl branch [-d] <branch>\n";
+            }
+        } else {
+            die basename($0).": error: your repository does not have any commits yet\n";
+        }
+    }
+    # legit.pl checkout branch-name
+    elsif ('checkout' eq $command) {
+    # Switched to branch 'b1'
     }
     elsif ('test' eq $command) {
     }
