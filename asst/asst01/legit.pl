@@ -10,6 +10,7 @@ $LE_GIT_REFS_DIR = $LE_GIT_DIR.'/refs';
 
 $LE_GIT_HEAD = $LE_GIT_DIR.'/HEAD';
 $LE_GIT_INDEX = $LE_GIT_DIR.'/index';
+$LE_GIT_LATEST_COMMIT_CODE = $LE_GIT_DIR.'/latest';
 
 $LE_GIT_REFS_HEADS_DIR = $LE_GIT_REFS_DIR.'/heads';
 
@@ -332,8 +333,9 @@ if (@ARGV) {
         if ($parent) {
             my @parent = readCommit($parent);
             die "nothing to commit\n" if ($tree eq $parent[0]);
-            $version = 1;
-            $version += $parent[3] if (@parent == 4);
+            $version = readFile($LE_GIT_LATEST_COMMIT_CODE);
+            chomp $version;
+            $version++;
             $data = "$data\n$parent\n$version";
         } else {
             $version = 0;
@@ -341,6 +343,7 @@ if (@ARGV) {
         }
         my $commit = hashObject($data, $LE_GIT_OBJECT_TYPE_COMMIT);
         writeHead($commit);
+        writeFile($version, $LE_GIT_LATEST_COMMIT_CODE);
         print("Committed as commit $version\n");
     }
     # legit.pl log
@@ -620,9 +623,110 @@ if (@ARGV) {
             die basename($0).": error: your repository does not have any commits yet\n";
         }
     }
-    # legit.pl checkout branch-name
+    # legit.pl checkout <branch-name>
     elsif ('checkout' eq $command) {
-    # Switched to branch 'b1'
+        checkGitDir();
+        my $head = getHead();
+        if ($head) {
+            if (@ARGV == 2) {
+                my $branch_name = $ARGV[1];
+                my $current_branch = whichBranch();
+                if ($current_branch ne $branch_name) {
+                    my @branches = getAllBranches();
+                    foreach my $branch (@branches) {
+                        if ($branch_name eq $branch) {
+                            my @current_commit = split("\n", (readObject((readCommit($head))[0]))[1]);
+                            my @current_committed_files = map{(split / /, $_)[2]}@current_commit;
+
+                            my $branch_head = readFile("$LE_GIT_REFS_HEADS_DIR/$branch");
+                            chomp $branch_head;
+                            my @branch_commit = split("\n", (readObject((readCommit($branch_head))[0]))[1]);
+                            my @branch_committed_files = ();
+
+                            my %file2write = ();
+                            my %file2overwrite = ();
+                            my @file_cannot_overwrite = ();
+                            foreach my $record (@branch_commit) {
+                                my ($sha1, $conflict, $el0) = split / /, $record;
+                                push @branch_committed_files, $el0;
+                                my $hit;
+                                foreach my $el1 (@current_committed_files) {
+                                    if ($el0 eq $el1) {
+                                        $hit = 1;
+                                        $file2overwrite{$el0} = $sha1 if $head ne $branch_head;
+                                        last;
+                                    }
+                                }
+                                if (!$hit) {
+                                    if (!-e $el0) {
+                                        $file2write{$el0} = $sha1;
+                                    } else {
+                                        push @file_cannot_overwrite, $el0;
+                                    }
+                                }
+                            }
+
+                            if (@file_cannot_overwrite) {
+                                print basename($0).": error: Your changes to the following files would be overwritten by checkout:\n";
+                                foreach my $file (@file_cannot_overwrite) {
+                                    print "$file\n";
+                                }
+                                exit 1;
+                            }
+
+                            my @file2delete = ();
+                            foreach my $el0 (@current_committed_files) {
+                                my $hit;
+                                foreach my $el1 (@branch_committed_files) {
+                                    if ($el0 eq $el1) {
+                                        $hit = 1;
+                                        last;
+                                    }
+                                }
+                                push @file2delete, $el0 if !$hit;
+                            }
+
+                            while(my ($file, $sha1) = each %file2overwrite) {
+                                writeFile((readObject($sha1))[1], $file);
+                            }
+                            addFiles((keys %file2overwrite));
+                            while(my ($file, $sha1) = each %file2write) {
+                                writeFile((readObject($sha1))[1], $file);
+                            }
+                            addFiles((keys %file2write));
+
+                            foreach my $file (@file2delete) {
+                                unlink $file;
+                            }
+                            # rm --force --cached
+                            my @index = readIndex();
+                            for (my $i = 0; $i < @index; $i++) {
+                                my $ifile = (split / /, $index[$i])[2];
+                                foreach my $file (@file2delete) {
+                                    if ($ifile eq $file) {
+                                        undef $index[$i];
+                                        last;
+                                    }
+                                }
+                            }
+                            @index = grep { defined($_) } @index;
+                            writeIndex(@index);
+
+                            writeFile("ref: refs/heads/$branch_name\n", $LE_GIT_HEAD);
+                            print "Switched to branch '$branch_name'\n";
+                            exit 0;
+                        }
+                    }
+                    die basename($0).": error: unknown branch '$branch_name'\n";
+                } else {
+                    print "Already on '$branch_name'\n";
+                }
+            } else {
+                die "usage: legit.pl checkout <branch>\n";
+            }
+        } else {
+            die basename($0).": error: your repository does not have any commits yet\n";
+        }
     }
     elsif ('test' eq $command) {
     }
