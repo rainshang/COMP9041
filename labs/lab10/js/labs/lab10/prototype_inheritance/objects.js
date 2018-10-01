@@ -30,13 +30,12 @@ function Dog(name, age) {
     this.name = name;
     Animal.call(this, age);
     this.sound = 'woof';
+    this.toHumanYears = () => {
+        return this.age * 7;
+    }
 }
 
 Dog.prototype = Object.create(Animal.prototype);
-Dog.__proto__ = Animal;
-
-Dog.prototype.toHumanYears = function () {
-    return this.age * 7;
-}
+Dog.prototype.makeSound = Animal.prototype.makeSound;
 
 module.exports = Dog;
