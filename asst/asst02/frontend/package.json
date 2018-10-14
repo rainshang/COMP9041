@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npx http-server",
+    "build": "npx build",
     "lint": "npx eslint src/**/*.js"
   },
   "repository": {
@@ -12,7 +13,8 @@
     "url": "git+https://github.com/teaching-vue/assignment.git"
   },
   "keywords": [
-    "javascript"
+    "javascript",
+    "ice-scaffold"
   ],
   "contributors": [
     "Alex Hinds <alex.hinds141@gmail.com>",
@@ -30,5 +32,8 @@
   "engines": {
     "node": ">=9.0.0",
     "npm": ">=6.0.0"
+  },
+  "dependencies": {
+    "npx": "^10.2.0"
   }
 }

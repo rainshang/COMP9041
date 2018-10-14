@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,25 +11,78 @@
     <script type="module" src="src/helpers.js"></script>
     <script type="module" src="src/api.js"></script>
 </head>
+
 <body>
-    <!-- This is an example app structure --> 
+    <!-- This is an example app structure -->
     <header class='banner'>
         <h1>Instacram</h1>
         <ul class='nav'>
-            <li class="nav-item"><input type="file"/></li>
-            <li class='nav-item'>Icon</li>
-            <li class='nav-item'>Icon</li>
+            <!-- <li class="nav-item"><input type="file"/></li> -->
+            <li class='nav-item' id='username'></li>
+            <button class='nav-btn' id='login'>Login</button>
+            <button class='nav-btn' id='register'>Register</button>
         </ul>
     </header>
     <main role='main'>
-        <!-- app goes here --> 
+        <!-- app goes here -->
         <div id='large-feed'>
             <!-- inject feed data -->
         </div>
     </main>
+    <dialog role='login'>
+        <div class='dialog-content'>
+            <span class='dialog-close' id='login-dialog-close'>&times;</span>
+            <form id='login-form'>
+                <table>
+                    <tr>
+                        <td>username</td>
+                        <td><input name='username' /></td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>
+                            <input name='password' type='password' />
+                        </td>
+                    </tr>
+                </table>
+            </form>
+            <button class='dialog-btn' id='login-dialog-btn'>Login</button>
+        </div>
+    </dialog>
+    <dialog role='register'>
+        <div class='dialog-content'>
+            <span class='dialog-close' id='register-dialog-close'>&times;</span>
+            <form id='register-form'>
+                <table>
+                    <tr>
+                        <td>username</td>
+                        <td><input name='username' /></td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>
+                            <input name='password' type='password' />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>email</td>
+                        <td>
+                            <input name='email' type='email' />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td><input name='name' /></td>
+                    </tr>
+                </table>
+            </form>
+            <button class='dialog-btn' id='register-dialog-btn'>Register</button>
+        </div>
+    </dialog>
     <footer>
         <p>Instacram example</p>
     </footer>
     <script type="module" src="src/main.js"></script>
 </body>
+
 </html>

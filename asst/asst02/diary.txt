@@ -1,1 +1,5 @@
-13/10/18     18:00   18:15   put the first real entry in diary.txt (delete this line!)
+12/10/18    12:30   13:50   Initial import and setup npm env
+12/10/18    13:50   16:00   Working on level 0 'login'
+13/10/18    16:40   18:03   Working on level 0 'feed'
+14/10/18    13:49   16:00   Wokring on level 1 'login' API
+14/10/18    16:47   19:53   finish level 1 'login' and 'register' functionalities

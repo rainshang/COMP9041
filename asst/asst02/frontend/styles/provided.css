@@ -45,6 +45,15 @@ footer {
     list-style-type: none;
 }
 
+.nav-btn {
+    font-size: 15pt;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin: auto;
+    padding: 5px;
+    display: inline;
+    list-style-type: none;
+}
+
 .post {
     max-width: 640px;
     overflow: hidden;
@@ -57,6 +66,12 @@ footer {
     padding: 20px 40px;
     margin: 0;
     border-bottom: 1px solid rgba(0,0,0,.0975);
+}
+
+.post-desc {
+    font-size: 11pt;
+    padding: 20px 40px;
+    margin: 0;
 }
 
 .post-thumb {
@@ -92,3 +107,44 @@ footer {
 }
 
 /* Add your styles here */
+dialog {
+    display: none;
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 200px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.dialog-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 30%;
+}
+
+.dialog-close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.dialog-close:hover,
+.dialog-close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.dialog-btn {
+    display: flex;
+    font-size: 20px;
+    margin:  10px auto 0 auto;
+}
