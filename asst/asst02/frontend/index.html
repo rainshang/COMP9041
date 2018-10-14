@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="styles/provided.css" />
     <script type="module" src="src/helpers.js"></script>
     <script type="module" src="src/api.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
 </head>
 
 <body>
@@ -18,9 +19,14 @@
         <h1>Instacram</h1>
         <ul class='nav'>
             <!-- <li class="nav-item"><input type="file"/></li> -->
-            <li class='nav-item' id='username'></li>
-            <button class='nav-btn' id='login'>Login</button>
-            <button class='nav-btn' id='register'>Register</button>
+            <div id='loggedin-area'>
+                <li class='nav-item' id='username'></li>
+                <button class='nav-btn' id='logout'>Logout</button>
+            </div>
+            <div id='unloggedin-area'>
+                <button class='nav-btn' id='login'>Login</button>
+                <button class='nav-btn' id='register'>Register</button>
+            </div>
         </ul>
     </header>
     <main role='main'>

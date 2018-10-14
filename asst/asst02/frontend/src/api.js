@@ -7,7 +7,7 @@ const getJSON = (path, options) =>
         .catch(err => console.warn(`API_ERROR: ${err.message}`));
 
 const getQuerySuffix = (url, params) => {
-    if (params) {
+    if (params && Object.keys(params).length) {
         return url + '?' + Object.keys(params)
             .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
             .join('&');
@@ -83,11 +83,21 @@ export default class API {
         });
     }
 
-    /**
-     * @returns feed array in json format
-     */
-    getFeed() {
-        return this.makeAPIRequest('../data/feed.json');
+    getFeed(p, n) {
+        let params = {};
+        if (p) {
+            params.p = p;
+        }
+        if (n) {
+            params.n = n;
+        }
+        return this.makeAPIRequest(getQuerySuffix('user/feed', params), {
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization': `Token ${this.token}`,
+            },
+            method: 'GET',
+        });
     }
 
     /**

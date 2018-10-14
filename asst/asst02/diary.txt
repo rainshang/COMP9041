@@ -3,3 +3,5 @@
 13/10/18    16:40   18:03   Working on level 0 'feed'
 14/10/18    13:49   16:00   Wokring on level 1 'login' API
 14/10/18    16:47   19:53   finish level 1 'login' and 'register' functionalities
+14/10/18    20:40   23:09   Wokring level 1 'feed' API and UI.
+15/10/18    01:09   01:46   finish level 1 'feed'.

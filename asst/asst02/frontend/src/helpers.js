@@ -35,17 +35,40 @@ export function createElement(tag, data, options = {}) {
  * @param   {object}        post 
  * @returns {HTMLElement}
  */
-export function createPostTile(post) {
+export function createPostTile(post, selfId) {
     const section = createElement('section', null, { class: 'post' });
 
     section.appendChild(createElement('h2', post.meta.author, { class: 'post-title' }));
     section.appendChild(createElement('div', post.meta.description_text, { class: 'post-desc' }));
     section.appendChild(createElement('img', null,
-        { src: '/images/' + post.src, alt: post.meta.description_text, class: 'post-image' }));
+        {
+            src: 'data:image/jpeg;base64,' + post.src,
+            alt: post.meta.description_text, class: 'post-image'
+        }));
 
-    section.appendChild(createElement('div', new Date(post.meta.published).format('yyyy-mm-dd hh:MM:ss'), { class: 'post-date' }));
-    // section.appendChild(createElement('div', new Date(post.meta.published).format('yyyy-mm-dd hh:MM:ss'), { class: 'post-date' }));
-    // https://material.io/tools/icons/?icon=favorite&style=baseline
+    section.appendChild(createElement('div', new Date(1000 * post.meta.published).format('yyyy-mm-dd hh:MM:ss'), { class: 'post-date' }));
+
+    let bottomDiv = createElement('div', null, { class: 'post-bottom' })
+
+    let likeDiv = createElement('div', null, { class: 'post-bottom-like' })
+
+    let likeIcon = createElement('i', post.meta.likes.includes(selfId) ? 'favorite' : 'favorite_border', { class: 'material-icons' })
+    let likeCount = createElement('span', post.meta.likes.length, { class: 'post-bottom-text' })
+    likeDiv.appendChild(likeIcon);
+    likeDiv.appendChild(likeCount);
+
+    bottomDiv.appendChild(likeDiv);
+
+    let commentDiv = createElement('div', null, { class: 'post-bottom-comment' })
+    let commentIcon = createElement('i', post.comments.includes(selfId) ? 'chat_bubble' : 'chat_bubble_outline', { class: 'material-icons' })
+    let commentCount = createElement('span', post.comments.length, { class: 'post-bottom-text' })
+    commentDiv.appendChild(commentIcon);
+    commentDiv.appendChild(commentCount);
+
+    bottomDiv.appendChild(commentDiv);
+
+    section.appendChild(bottomDiv);
+
     return section;
 }
 
