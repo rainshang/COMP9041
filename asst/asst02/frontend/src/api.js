@@ -1,5 +1,6 @@
 // change this when you integrate with the real API, or when u start using the dev server
 const API_URL = 'http://login.cse.unsw.edu.au:8007'
+// const API_URL = 'http://localhost:5000'
 
 const getJSON = (path, options) =>
     fetch(path, options)
@@ -100,11 +101,24 @@ export default class API {
         });
     }
 
-    /**
-     * @returns auth'd user in json format
-     */
-    getMe() {
-        return this.makeAPIRequest('../data/me.json');
+    like(pid) {
+        return this.makeAPIRequest(`post/like?id=${pid}`, {
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization': `Token ${this.token}`,
+            },
+            method: 'PUT',
+        });
+    }
+
+    unlike(pid) {
+        return this.makeAPIRequest(`post/unlike?id=${pid}`, {
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization': `Token ${this.token}`,
+            },
+            method: 'PUT',
+        });
     }
 
 }

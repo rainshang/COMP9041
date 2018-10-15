@@ -101,9 +101,8 @@ function fetchFeed() {
     api.getFeed()
         .then(result => result.posts)
         .then(posts => {
-            console.log(posts)
             posts.reduce((parent, post) => {
-                parent.appendChild(createPostTile(post, userInfo.id));
+                parent.appendChild(createPostTile(api, post, userInfo.id));
                 return parent;
             }, document.getElementById('large-feed'))
         });

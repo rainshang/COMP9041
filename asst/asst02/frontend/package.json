@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/teaching-vue/assignment.git"
+    "url": "git+https://github.com/COMP2041UNSW/instacram"
   },
   "keywords": [
     "javascript",
@@ -18,7 +18,7 @@
   ],
   "contributors": [
     "Alex Hinds <alex.hinds141@gmail.com>",
-    "Zain Afzal <zainafzal08@gmail.com>"
+    "Zain Afzal <zain.afz@gmail.com>"
   ],
   "license": "ISC",
   "bugs": {

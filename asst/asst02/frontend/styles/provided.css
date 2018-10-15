@@ -95,6 +95,7 @@ footer {
 }
 
 .post-bottom {
+    display: table;
     padding: 5px;
 }
 
@@ -104,8 +105,12 @@ footer {
     align-items: center;
 }
 
+.post-bottom-like-name {
+    color: royalblue;
+}
+
 .post-bottom-comment {
-    float: right;
+    float: left;
     display: flex;
     align-items: center;
 }

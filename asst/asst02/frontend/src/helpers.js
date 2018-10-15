@@ -35,7 +35,7 @@ export function createElement(tag, data, options = {}) {
  * @param   {object}        post 
  * @returns {HTMLElement}
  */
-export function createPostTile(post, selfId) {
+export function createPostTile(api, post, selfId) {
     const section = createElement('section', null, { class: 'post' });
 
     section.appendChild(createElement('h2', post.meta.author, { class: 'post-title' }));
@@ -49,25 +49,60 @@ export function createPostTile(post, selfId) {
     section.appendChild(createElement('div', new Date(1000 * post.meta.published).format('yyyy-mm-dd hh:MM:ss'), { class: 'post-date' }));
 
     let bottomDiv = createElement('div', null, { class: 'post-bottom' })
-
     let likeDiv = createElement('div', null, { class: 'post-bottom-like' })
-
-    let likeIcon = createElement('i', post.meta.likes.includes(selfId) ? 'favorite' : 'favorite_border', { class: 'material-icons' })
-    let likeCount = createElement('span', post.meta.likes.length, { class: 'post-bottom-text' })
+    let likeIcon = createElement('i', null, { class: 'material-icons' })
+    let likeCount = createElement('span', null, { class: 'post-bottom-text' })
     likeDiv.appendChild(likeIcon);
     likeDiv.appendChild(likeCount);
-
     bottomDiv.appendChild(likeDiv);
+    likeDiv.addEventListener('click', () => {
+        if (post.meta.likes.includes(selfId)) {
+            api.unlike(post.id)
+                .then(res => {
+                    console.log(res)
+                    if ((/Success/i).test(res.message)) {
+                        post.meta.likes.splice(post.meta.likes.indexOf(selfId), 1);
+                        refreshLike();
+                    }
+                })
+        } else {
+            api.like(post.id)
+                .then(res => {
+                    if ((/Success/i).test(res.message)) {
+                        post.meta.likes.push(selfId);
+                        refreshLike();
+                    }
+                })
+        }
+    });
+    let refreshLike = () => {
+        likeIcon.textContent = post.meta.likes.includes(selfId) ? 'favorite' : 'favorite_border';
+        likeCount.textContent = post.meta.likes.length;
+        likeNames.textContent = '';
+        post.meta.likes.forEach(uid => {
+            api.getUser(null, uid)
+                .then(res => {
+                    if (likeNames.textContent) {
+                        likeNames.textContent += `, ${res.name}`;
+                    } else {
+                        likeNames.textContent += res.name;
+                    }
+                })
+        });
+    };
+    let likeNames = createElement('div', null, { class: 'post-bottom-like-name' });
+    bottomDiv.appendChild(likeNames);
+    refreshLike();
+    section.appendChild(bottomDiv);
 
+    let bottomDiv2 = createElement('div', null, { class: 'post-bottom' })
     let commentDiv = createElement('div', null, { class: 'post-bottom-comment' })
     let commentIcon = createElement('i', post.comments.includes(selfId) ? 'chat_bubble' : 'chat_bubble_outline', { class: 'material-icons' })
     let commentCount = createElement('span', post.comments.length, { class: 'post-bottom-text' })
     commentDiv.appendChild(commentIcon);
     commentDiv.appendChild(commentCount);
-
-    bottomDiv.appendChild(commentDiv);
-
-    section.appendChild(bottomDiv);
+    bottomDiv2.appendChild(commentDiv);
+    section.appendChild(bottomDiv2);
 
     return section;
 }
