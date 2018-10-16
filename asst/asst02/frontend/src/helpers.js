@@ -57,11 +57,10 @@ export function createPostTile(api, post, selfId, onComment) {
     bottomDiv.appendChild(likeDiv);
     let likeNames = createElement('div', null, { class: 'post-bottom-like-name' });
     bottomDiv.appendChild(likeNames);
-    likeDiv.addEventListener('click', () => {
+    likeIcon.addEventListener('click', () => {
         if (post.meta.likes.includes(selfId)) {
             api.unlike(post.id)
                 .then(res => {
-                    console.log(res)
                     if ((/Success/i).test(res.message)) {
                         post.meta.likes.splice(post.meta.likes.indexOf(selfId), 1);
                         refreshLike();
@@ -113,7 +112,7 @@ export function createPostTile(api, post, selfId, onComment) {
             commentList.appendChild(item);
         });
     };
-    commentDiv.addEventListener('click', () => {
+    commentIcon.addEventListener('click', () => {
         if (onComment) {
             onComment(post.id, (comment) => {
                 post.comments.push(comment);
