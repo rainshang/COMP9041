@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="styles/provided.css" />
     <script type="module" src="src/helpers.js"></script>
     <script type="module" src="src/api.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 </head>
 
 <body>
@@ -83,6 +83,13 @@
                 </table>
             </form>
             <button class='dialog-btn' id='register-dialog-btn'>Register</button>
+        </div>
+    </dialog>
+    <dialog role='comment'>
+        <div class='dialog-content'>
+            <span class='dialog-close' id='comment-dialog-close'>&times;</span>
+            <textarea class='comment-input' id='comment-input' rows='7'></textarea>
+            <button class='dialog-btn' id='comment-dialog-btn'>comment</button>
         </div>
     </dialog>
     <footer>

@@ -97,10 +97,10 @@ footer {
 .post-bottom {
     display: table;
     padding: 5px;
+    width: 100%;
 }
 
 .post-bottom-like {
-    float: left;
     display: flex;
     align-items: center;
 }
@@ -110,9 +110,20 @@ footer {
 }
 
 .post-bottom-comment {
-    float: left;
     display: flex;
     align-items: center;
+}
+
+.post-bottom-comment-list {
+    background-color: azure;
+    padding: 10px;
+    border-radius: 5px;
+    width: 95%;
+}
+
+.post-bottom-comment-list-item {
+    font-size: 14pt;
+    margin: 5px;
 }
 
 .post-bottom-text {
@@ -179,4 +190,9 @@ dialog {
     display: flex;
     font-size: 20px;
     margin:  10px auto 0 auto;
+}
+
+.comment-input {
+    width: 100%;
+    font-size: 11pt;
 }

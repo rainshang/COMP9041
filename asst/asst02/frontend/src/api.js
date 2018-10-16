@@ -121,4 +121,19 @@ export default class API {
         });
     }
 
+    comment(pid, author, comment) {
+        return this.makeAPIRequest(`post/comment?id=${pid}`, {
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization': `Token ${this.token}`,
+            },
+            method: 'PUT',
+            body: JSON.stringify({
+                author: author,
+                published: new Date().getTime() / 1000,
+                comment: comment,
+            })
+        });
+    }
+
 }

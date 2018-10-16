@@ -17,6 +17,8 @@ let unloggedinDiv = document.getElementById('unloggedin-area');
 
 let loginDialog = document.querySelector('[role="login"]');
 let registerDialog = document.querySelector('[role="register"]');
+let commentDialog = document.querySelector('[role="comment"]');
+let commentInput = document.getElementById('comment-input');
 
 document.getElementById('login').onclick = () => {
     loginDialog.style.display = 'block';
@@ -64,6 +66,26 @@ document.getElementById('register-dialog-btn').onclick = () => {
         })
 };
 
+document.getElementById('comment-dialog-close').onclick = () => {
+    commentDialog.style.display = 'none';
+};
+document.getElementById('comment-dialog-btn').onclick = () => {
+    if (commentInput.value) {
+        let author = JSON.parse(getCookie('userInfo')).name;
+        api.comment(commentInput.pid, author, commentInput.value)
+            .then(res => {
+                if ((/Success/i).test(res.message)) {
+                    commentInput.onCommentSucess({
+                        author: author,
+                        published: new Date().getTime() / 1000,
+                        comment: commentInput.value,
+                    });
+                    commentDialog.style.display = 'none';
+                }
+            });
+    }
+};
+
 document.getElementById('logout').onclick = () => {
     setCookie('token', '', 0);
     setCookie('userInfo', '', 0);
@@ -102,10 +124,17 @@ function fetchFeed() {
         .then(result => result.posts)
         .then(posts => {
             posts.reduce((parent, post) => {
-                parent.appendChild(createPostTile(api, post, userInfo.id));
+                parent.appendChild(createPostTile(api, post, userInfo.id, onComment));
                 return parent;
             }, document.getElementById('large-feed'))
         });
+}
+
+function onComment(pid, onCommentSucess) {
+    commentInput.pid = pid;
+    commentInput.value = '';
+    commentInput.onCommentSucess = onCommentSucess;
+    commentDialog.style.display = 'block';
 }
 
 function setCookie(cname, cvalue, exdays) {
@@ -130,8 +159,3 @@ function getCookie(cname) {
     }
     return "";
 }
-
-// find main tag
-let main = document.querySelector('[role="main"]');
-// 
-

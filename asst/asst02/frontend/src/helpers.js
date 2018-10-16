@@ -35,7 +35,7 @@ export function createElement(tag, data, options = {}) {
  * @param   {object}        post 
  * @returns {HTMLElement}
  */
-export function createPostTile(api, post, selfId) {
+export function createPostTile(api, post, selfId, onComment) {
     const section = createElement('section', null, { class: 'post' });
 
     section.appendChild(createElement('h2', post.meta.author, { class: 'post-title' }));
@@ -55,6 +55,8 @@ export function createPostTile(api, post, selfId) {
     likeDiv.appendChild(likeIcon);
     likeDiv.appendChild(likeCount);
     bottomDiv.appendChild(likeDiv);
+    let likeNames = createElement('div', null, { class: 'post-bottom-like-name' });
+    bottomDiv.appendChild(likeNames);
     likeDiv.addEventListener('click', () => {
         if (post.meta.likes.includes(selfId)) {
             api.unlike(post.id)
@@ -90,18 +92,36 @@ export function createPostTile(api, post, selfId) {
                 })
         });
     };
-    let likeNames = createElement('div', null, { class: 'post-bottom-like-name' });
-    bottomDiv.appendChild(likeNames);
     refreshLike();
     section.appendChild(bottomDiv);
 
     let bottomDiv2 = createElement('div', null, { class: 'post-bottom' })
     let commentDiv = createElement('div', null, { class: 'post-bottom-comment' })
-    let commentIcon = createElement('i', post.comments.includes(selfId) ? 'chat_bubble' : 'chat_bubble_outline', { class: 'material-icons' })
-    let commentCount = createElement('span', post.comments.length, { class: 'post-bottom-text' })
+    let commentIcon = createElement('i', 'chat_bubble_outline', { class: 'material-icons' })
+    let commentCount = createElement('span', null, { class: 'post-bottom-text' })
     commentDiv.appendChild(commentIcon);
     commentDiv.appendChild(commentCount);
     bottomDiv2.appendChild(commentDiv);
+    let commentList = createElement('div', null, { class: 'post-bottom-comment-list' });
+    bottomDiv2.appendChild(commentList);
+    let refreshComment = () => {
+        commentCount.textContent = post.comments.length;
+        commentList.textContent = '';
+        post.comments.forEach(comment => {
+            let item = createElement('div', null, { class: 'post-bottom-comment-list-item' });
+            item.innerHTML = `<font color='royalblue'><b>${comment.author}:</b></font> ${comment.comment}`;
+            commentList.appendChild(item);
+        });
+    };
+    commentDiv.addEventListener('click', () => {
+        if (onComment) {
+            onComment(post.id, (comment) => {
+                post.comments.push(comment);
+                refreshComment();
+            });
+        }
+    });
+    refreshComment();
     section.appendChild(bottomDiv2);
 
     return section;
