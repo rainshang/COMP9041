@@ -6,11 +6,6 @@ import API from './api.js';
 
 const api = new API();
 
-// // Potential example to upload an image
-// const input = document.querySelector('input[type="file"]');
-
-// input.addEventListener('change', uploadImage);
-
 // get nav items
 let loggedinDiv = document.getElementById('loggedin-area');
 let unloggedinDiv = document.getElementById('unloggedin-area');
@@ -19,6 +14,10 @@ let loginDialog = document.querySelector('[role="login"]');
 let registerDialog = document.querySelector('[role="register"]');
 let commentDialog = document.querySelector('[role="comment"]');
 let commentInput = document.getElementById('comment-input');
+let newPostDialog = document.querySelector('[role="new-post"]');
+let newPostFile = document.querySelector('input[type="file"]');
+let newPostImg = document.getElementById('new-post-dialog-img');
+let newPostInput = document.getElementById('new-post-input');
 
 let loading = document.getElementById('loading');
 let nextPageBtn = document.querySelector('[class="next-page"]');
@@ -89,6 +88,35 @@ document.getElementById('comment-dialog-btn').onclick = () => {
             });
     }
 };
+
+
+
+
+document.getElementById('new-post').onclick = () => {
+    newPostFile.value = '';
+    newPostImg.src = '';
+    newPostInput.value = '';
+    newPostDialog.style.display = 'block';
+};
+document.getElementById('new-post-dialog-close').onclick = () => {
+    newPostDialog.style.display = 'none';
+};
+document.getElementById('new-post-dialog-btn').onclick = () => {
+    if (newPostInput.value && newPostImg.src.startsWith('data:image/')) {
+        api.post(newPostInput.value, newPostImg.src.split('base64,')[1])
+            .then(res => {
+                if (res.post_id) {
+                    newPostDialog.style.display = 'none';
+                } else {
+                    console.log(res.message);
+                }
+            });
+    }
+};
+newPostDialog = document.querySelector('[role="new-post"]');
+newPostFile.addEventListener('change', e => uploadImage(e, img => {
+    newPostImg.src = img;
+}));
 
 document.getElementById('logout').onclick = () => {
     setCookie('token', '', 0);

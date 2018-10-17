@@ -1,6 +1,6 @@
 // change this when you integrate with the real API, or when u start using the dev server
-const API_URL = 'http://login.cse.unsw.edu.au:8007'
-// const API_URL = 'http://localhost:5000'
+// const API_URL = 'http://login.cse.unsw.edu.au:8007'
+const API_URL = 'http://localhost:5000'
 
 const getJSON = (path, options) =>
     fetch(path, options)
@@ -132,6 +132,20 @@ export default class API {
                 author: author,
                 published: new Date().getTime() / 1000,
                 comment: comment,
+            })
+        });
+    }
+
+    post(desc, img_base64) {
+        return this.makeAPIRequest('post', {
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization': `Token ${this.token}`,
+            },
+            method: 'POST',
+            body: JSON.stringify({
+                description_text: desc,
+                src: img_base64,
             })
         });
     }

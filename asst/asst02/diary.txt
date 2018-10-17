@@ -11,3 +11,7 @@
 18/10/18    01:15   01:47   finish level 2 'Profile', by moving mouse to orange name and showing a profile popup.
 18/10/18    01:50   02:03   fix UI bug in feed list
 18/10/18    02:05   02:40   finish level 2 'Pagination', by showing a 'next page' button at the bottom.
+18/10/18    02:40   03:52   fix login status changing bug; finish level 2 'Post new content'.
+
+I've implemented ALL the functionalities in level 0, level 1 and level 2. Moreover, 'Comments' and 'Live Update' in level 3 are also implemented.
+I'm considering to spend time to finish all the tasks or save time to prepair for the final exam. Em...

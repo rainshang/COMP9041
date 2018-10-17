@@ -18,8 +18,8 @@ try:
     import namespaces.auth
     import namespaces.user
     import namespaces.dummy
-    # app.run(debug=True)
-    app.run(host='0', debug=True, port=8007)
+    app.run(debug=True)
+    # app.run(host='0', debug=True, port=8007)
 except ImportError as e:
     print('ERROR:', e, file=sys.stderr)
     if sys.version_info < (3,6):

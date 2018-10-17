@@ -18,7 +18,6 @@
     <header class='banner'>
         <h1>Instacram</h1>
         <ul class='nav'>
-            <!-- <li class="nav-item"><input type="file"/></li> -->
             <div id='loggedin-area'>
                 <button class='nav-btn' id='new-post'>New Post</button>
                 <div class='nav-user' id='username'>
@@ -128,7 +127,16 @@
         <div class='dialog-content'>
             <span class='dialog-close' id='comment-dialog-close'>&times;</span>
             <textarea class='comment-input' id='comment-input' rows='7'></textarea>
-            <button class='dialog-btn' id='comment-dialog-btn'>comment</button>
+            <button class='dialog-btn' id='comment-dialog-btn'>Comment</button>
+        </div>
+    </dialog>
+    <dialog role='new-post'>
+        <div class='post-dialog-content'>
+            <span class='dialog-close' id='new-post-dialog-close'>&times;</span>
+            <input type='file' />
+            <img id='new-post-dialog-img' width='300px' height='300px' style='margin: 10px; object-fit: cover;' />
+            <textarea class='comment-input' id='new-post-input' rows='7'></textarea>
+            <button class='dialog-btn' id='new-post-dialog-btn'>Post</button>
         </div>
     </dialog>
     <footer>

@@ -132,10 +132,11 @@ export function createPostTile(api, post, selfId, onComment) {
 }
 
 // Given an input element of type=file, grab the data uploaded for use
-export function uploadImage(event) {
+export function uploadImage(event, onImgRead) {
     const [file] = event.target.files;
 
-    const validFileTypes = ['image/jpeg', 'image/png', 'image/jpg']
+    // const validFileTypes = ['image/jpeg', 'image/png', 'image/jpg']
+    const validFileTypes = ['image/png']
     const valid = validFileTypes.find(type => type === file.type);
 
     // bad data, let's walk away
@@ -147,9 +148,7 @@ export function uploadImage(event) {
 
     reader.onload = (e) => {
         // do something with the data result
-        const dataURL = e.target.result;
-        const image = createElement('img', null, { src: dataURL });
-        document.body.appendChild(image);
+        onImgRead(e.target.result);
     };
 
     // this returns a base64 image
