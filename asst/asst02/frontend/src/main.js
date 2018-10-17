@@ -39,7 +39,7 @@ document.getElementById('login-dialog-btn').onclick = () => {
                         loginDialog.style.display = 'none';
                     })
             }
-        })
+        });
 };
 
 document.getElementById('register').onclick = () => {
@@ -100,7 +100,15 @@ function refreshNav() {
         api.setToken(token);
         console.log(token)
         let userInfo = JSON.parse(getCookie('userInfo'));
-        document.getElementById('username').innerText = userInfo.name;
+        let usernameDiv = document.getElementById('username');
+        usernameDiv.innerHTML = userInfo.name + usernameDiv.innerHTML;
+        document.getElementById('user-pop-username').innerText = userInfo.username;
+        document.getElementById('user-pop-email').innerText = userInfo.email;
+        document.getElementById('user-pop-name').innerText = userInfo.name;
+        document.getElementById('user-pop-posts').innerText = userInfo.posts.length;
+        document.getElementById('user-pop-following').innerText = userInfo.following.length;
+        document.getElementById('user-pop-followed').innerText = userInfo.followed_num;
+
         loggedinDiv.style.display = 'block';
         unloggedinDiv.style.display = 'none';
         fetchFeed();

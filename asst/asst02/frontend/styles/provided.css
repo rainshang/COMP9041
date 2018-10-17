@@ -45,13 +45,77 @@ footer {
     list-style-type: none;
 }
 
+.nav-user {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 0 20px;
+    padding: 5px 20px;
+    position: relative;
+    display: inline-block;
+    background-color: coral;
+    border-radius: 5px;
+}
+
+.nav-user .user-pop {
+    visibility: hidden;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 10px 10px;
+    position: absolute;
+    z-index: 1;
+    top: 150%;
+    left: 50%;
+    width: 250px;
+    margin-left: -135px;
+    opacity: 0;
+    transition: opacity 0.75s;
+}
+
+.nav-user .user-pop::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+
+.nav-user:hover .user-pop {
+    visibility: visible;
+    opacity: 1;
+}
+
+.user-pop-td-left{
+    text-align: left;
+    width: 90px;
+}
+
+.user-pop-td-right{
+    text-align: left;
+}
+
+.user-pop-horizon {
+    display: flex;
+    margin: 10px 0;
+}
+
+.user-pop-horizon-item {
+    flex-basis: 100%;
+}
+
 .nav-btn {
     font-size: 15pt;
     border: 1px solid rgba(0, 0, 0, 0.1);
     margin: auto;
-    padding: 5px;
+    padding: 5px 15px;
     display: inline;
     list-style-type: none;
+    border-radius: 5px;
+    font-size: 14pt;
+    background-color: lightgrey;
 }
 
 .post {

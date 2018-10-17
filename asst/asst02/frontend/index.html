@@ -20,7 +20,36 @@
         <ul class='nav'>
             <!-- <li class="nav-item"><input type="file"/></li> -->
             <div id='loggedin-area'>
-                <li class='nav-item' id='username'></li>
+                <button class='nav-btn' id='new-post'>New Post</button>
+                <div class='nav-user' id='username'>
+                    <div class='user-pop'>
+                        <table>
+                            <tr>
+                                <td class='user-pop-td-left'>Username</td>
+                                <td class='user-pop-td-right' id='user-pop-username'></td>
+                            </tr>
+                            <tr>
+                                <td class='user-pop-td-left'>Email</td>
+                                <td class='user-pop-td-right' id='user-pop-email'></td>
+                            </tr>
+                            <tr>
+                                <td class='user-pop-td-left'>Name</td>
+                                <td class='user-pop-td-right' id='user-pop-name'></td>
+                            </tr>
+                        </table>
+                        <hr />
+                        <div class='user-pop-horizon'>
+                            <div class='user-pop-horizon-item'>Posts</div>
+                            <div class='user-pop-horizon-item'>Following</div>
+                            <div class='user-pop-horizon-item'>Followed</div>
+                        </div>
+                        <div class='user-pop-horizon'>
+                            <div class='user-pop-horizon-item' id='user-pop-posts'></div>
+                            <div class='user-pop-horizon-item' id='user-pop-following'></div>
+                            <div class='user-pop-horizon-item' id='user-pop-followed'></div>
+                        </div>
+                    </div>
+                </div>
                 <button class='nav-btn' id='logout'>Logout</button>
             </div>
             <div id='unloggedin-area'>
