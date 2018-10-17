@@ -20,6 +20,10 @@ let registerDialog = document.querySelector('[role="register"]');
 let commentDialog = document.querySelector('[role="comment"]');
 let commentInput = document.getElementById('comment-input');
 
+let loading = document.getElementById('loading');
+let nextPageBtn = document.querySelector('[class="next-page"]');
+let currentP = 0;
+
 document.getElementById('login').onclick = () => {
     loginDialog.style.display = 'block';
 };
@@ -92,13 +96,17 @@ document.getElementById('logout').onclick = () => {
     refreshNav();
 };
 
+nextPageBtn.onclick = () => {
+    fetchFeed();
+};
+
 refreshNav();
 
 function refreshNav() {
     let token = getCookie('token');
     if (token) {
         api.setToken(token);
-        console.log(token)
+        console.log(token);
         let userInfo = JSON.parse(getCookie('userInfo'));
         let usernameDiv = document.getElementById('username');
         usernameDiv.innerHTML = userInfo.name + usernameDiv.innerHTML;
@@ -125,16 +133,23 @@ function onGetUnserInfo(token, userInfo) {
     refreshNav();
 }
 
-
 function fetchFeed() {
     let userInfo = JSON.parse(getCookie('userInfo'));
-    api.getFeed()
+    loading.style.display = 'block';
+    api.getFeed(currentP, 2)
         .then(result => result.posts)
         .then(posts => {
             posts.reduce((parent, post) => {
                 parent.appendChild(createPostTile(api, post, userInfo.id, onComment));
                 return parent;
-            }, document.getElementById('large-feed'))
+            }, document.getElementById('large-feed'));
+            loading.style.display = 'none';
+            nextPageBtn.style.display = 'block';
+            currentP += posts.length;
+        })
+        .catch(() => {
+            loading.style.display = 'none';
+            nextPageBtn.style.display = 'block';
         });
 }
 

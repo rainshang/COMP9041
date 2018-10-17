@@ -10,3 +10,4 @@
 17/10/18    23:30   23:54   working on user info popup.
 18/10/18    01:15   01:47   finish level 2 'Profile', by moving mouse to orange name and showing a profile popup.
 18/10/18    01:50   02:03   fix UI bug in feed list
+18/10/18    02:05   02:40   finish level 2 'Pagination', by showing a 'next page' button at the bottom.
