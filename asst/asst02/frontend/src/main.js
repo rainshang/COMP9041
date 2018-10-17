@@ -104,6 +104,10 @@ refreshNav();
 
 function refreshNav() {
     let token = getCookie('token');
+    currentP = 0;
+    document.getElementById('large-feed').innerHTML = '';
+    loading.style.display = 'none';
+    nextPageBtn.style.display = 'none';
     if (token) {
         api.setToken(token);
         console.log(token);
@@ -119,11 +123,11 @@ function refreshNav() {
 
         loggedinDiv.style.display = 'block';
         unloggedinDiv.style.display = 'none';
+
         fetchFeed();
     } else {
         loggedinDiv.style.display = 'none';
         unloggedinDiv.style.display = 'block';
-        document.getElementById('large-feed').innerHTML = '';
     }
 }
 
