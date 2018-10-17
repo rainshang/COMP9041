@@ -106,11 +106,16 @@ export function createPostTile(api, post, selfId, onComment) {
     let refreshComment = () => {
         commentCount.textContent = post.comments.length;
         commentList.textContent = '';
-        post.comments.forEach(comment => {
-            let item = createElement('div', null, { class: 'post-bottom-comment-list-item' });
-            item.innerHTML = `<font color='royalblue'><b>${comment.author}:</b></font> ${comment.comment}`;
-            commentList.appendChild(item);
-        });
+        if (post.comments.length) {
+            bottomDiv2.appendChild(commentList);
+            post.comments.forEach(comment => {
+                let item = createElement('div', null, { class: 'post-bottom-comment-list-item' });
+                item.innerHTML = `<font color='royalblue'><b>${comment.author}:</b></font> ${comment.comment}`;
+                commentList.appendChild(item);
+            });
+        } else {
+            bottomDiv2.removeChild(commentList);
+        }
     };
     commentIcon.addEventListener('click', () => {
         if (onComment) {
