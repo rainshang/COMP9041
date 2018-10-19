@@ -10,6 +10,8 @@ const api = new API();
 let loggedinDiv = document.getElementById('loggedin-area');
 let unloggedinDiv = document.getElementById('unloggedin-area');
 
+let userInfo;
+
 let loginDialog = document.querySelector('[role="login"]');
 let registerDialog = document.querySelector('[role="register"]');
 let commentDialog = document.querySelector('[role="comment"]');
@@ -33,14 +35,11 @@ document.getElementById('login-dialog-btn').onclick = () => {
     api.login(
         document.forms['login-form']['username'].value,
         document.forms['login-form']['password'].value)
-        .then(r1 => {
-            if (r1.token) {
-                api.setToken(r1.token);
-                api.getUser()
-                    .then(r2 => {
-                        onGetUnserInfo(r1.token, r2);
-                        loginDialog.style.display = 'none';
-                    })
+        .then(res => {
+            if (res.token) {
+                setCookie('token', res.token, 30);
+                refreshNav();
+                loginDialog.style.display = 'none';
             }
         });
 };
@@ -57,16 +56,13 @@ document.getElementById('register-dialog-btn').onclick = () => {
         document.forms['register-form']['password'].value,
         document.forms['register-form']['email'].value,
         document.forms['register-form']['name'].value)
-        .then(r1 => {
-            if (r1.token) {
-                api.setToken(r1.token);
-                api.getUser()
-                    .then(r2 => {
-                        onGetUnserInfo(r1.token, r2);
-                        registerDialog.style.display = 'none';
-                    })
+        .then(res => {
+            if (res.token) {
+                setCookie('token', res.token, 30);
+                refreshNav();
+                registerDialog.style.display = 'none';
             }
-        })
+        });
 };
 
 document.getElementById('comment-dialog-close').onclick = () => {
@@ -106,9 +102,10 @@ document.getElementById('new-post-dialog-btn').onclick = () => {
         api.post(newPostInput.value, newPostImg.src.split('base64,')[1])
             .then(res => {
                 if (res.post_id) {
+                    document.getElementById('user-pop-posts').innerText = userInfo.posts.length + 1;
                     newPostDialog.style.display = 'none';
                 } else {
-                    console.log(res.message);
+                    console.error(res.message);
                 }
             });
     }
@@ -120,7 +117,6 @@ newPostFile.addEventListener('change', e => uploadImage(e, img => {
 
 document.getElementById('logout').onclick = () => {
     setCookie('token', '', 0);
-    setCookie('userInfo', '', 0);
     refreshNav();
 };
 
@@ -134,40 +130,36 @@ function refreshNav() {
     let token = getCookie('token');
     currentP = 0;
     document.getElementById('large-feed').innerHTML = '';
-    loading.style.display = 'none';
+    loading.style.display = 'block';
     nextPageBtn.style.display = 'none';
     if (token) {
         api.setToken(token);
         console.log(token);
-        let userInfo = JSON.parse(getCookie('userInfo'));
-        let usernameDiv = document.getElementById('username');
-        usernameDiv.innerHTML = userInfo.name + usernameDiv.innerHTML;
-        document.getElementById('user-pop-username').innerText = userInfo.username;
-        document.getElementById('user-pop-email').innerText = userInfo.email;
-        document.getElementById('user-pop-name').innerText = userInfo.name;
-        document.getElementById('user-pop-posts').innerText = userInfo.posts.length;
-        document.getElementById('user-pop-following').innerText = userInfo.following.length;
-        document.getElementById('user-pop-followed').innerText = userInfo.followed_num;
-
+        api.getUser()
+            .then(res => {
+                userInfo = res;
+                document.getElementById('username').innerText = userInfo.name;
+                document.getElementById('user-pop-username').innerText = userInfo.username;
+                document.getElementById('user-pop-email').innerText = userInfo.email;
+                document.getElementById('user-pop-name').innerText = userInfo.name;
+                document.getElementById('user-pop-posts').innerText = userInfo.posts.length;
+                document.getElementById('user-pop-following').innerText = userInfo.following.length;
+                document.getElementById('user-pop-followed').innerText = userInfo.followed_num;
+                fetchFeed();
+            });
         loggedinDiv.style.display = 'block';
         unloggedinDiv.style.display = 'none';
-
-        fetchFeed();
     } else {
+        loading.style.display = 'none';
+        nextPageBtn.style.display = 'none';
         loggedinDiv.style.display = 'none';
         unloggedinDiv.style.display = 'block';
     }
 }
 
-function onGetUnserInfo(token, userInfo) {
-    setCookie('token', token, 30);
-    setCookie('userInfo', JSON.stringify(userInfo), 30);
-    refreshNav();
-}
-
 function fetchFeed() {
-    let userInfo = JSON.parse(getCookie('userInfo'));
     loading.style.display = 'block';
+    nextPageBtn.style.display = 'none';
     api.getFeed(currentP, 2)
         .then(result => result.posts)
         .then(posts => {
